@@ -2,13 +2,36 @@
   <% for post in @posts %>
     <div class="col-3">
       <h4>
-        <%# TODO: display the name of the user who created the post %>
-        <%# 1. find user who created post %>
-        <%# 2. handle any potential bad data where the post is missing a user %>
-        anonymous
+        <% user = User.find_by({"id" => post["user_id"]}) %>
+        <% if user %>
+          <%= user["first_name"] %>
+        <% else %>
+          anonymous
+        <% end %>
       </h4>
       <img src="<%= post["image"] %>" class="img-fluid w-full">
       <p><%= post["body"] %></p>
+
+      <% if @current_user && user && @current_user["id"] == user["id"] %>
+        <form action="/posts/<%= post["id"] %>" method="post">
+          <input type="hidden" name="_method" value="delete">
+          <button>Delete</button>
+        </form>
+      <% end %>
+
+      <% comments = Comment.where({"post_id" => post["id"]}) %>
+      <% for comment in comments %>
+        <% commenter = User.find_by({"id" => comment["user_id"]}) %>
+        <p><small><strong><%= commenter["first_name"] %></strong>: <%= comment["body"] %></small></p>
+      <% end %>
+
+      <% if @current_user %>
+        <form action="/comments" method="post">
+          <input type="text" name="body" placeholder="Add a comment...">
+          <input type="hidden" name="post_id" value="<%= post["id"] %>">
+          <button>Comment</button>
+        </form>
+      <% end %>
     </div>
   <% end %>
 </div>
